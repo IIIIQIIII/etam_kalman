@@ -1,8 +1,4 @@
-# Efficient Track Anything
-[[`📕Project`](https://yformer.github.io/efficient-track-anything/)][[`🤗Gradio Demo`](https://10f00f01361a8328a4.gradio.live)][[`📕Paper`](https://arxiv.org/pdf/2411.18933)][[`🤗Checkpoints`]](https://huggingface.co/yunyangx/efficient-track-anything/tree/main)
-
-The **Efficient Track Anything Model(EfficientTAM)** takes a vanilla lightweight ViT image encoder. An efficient memory cross-attention is proposed to further improve the efficiency. Our EfficientTAMs are trained on SA-1B (image) and SA-V (video) datasets. EfficientTAM achieves comparable performance with SAM 2 with improved efficiency. Our EfficientTAM can run **>10 frames per second** with reasonable video segmentation performance on **iPhone 15**. Try our demo with a family of EfficientTAMs at [[`🤗Gradio Demo`](https://10f00f01361a8328a4.gradio.live)].
-
+# Object Tracking
 
 ## EfficientTAM Setup Guide
 
@@ -16,8 +12,8 @@ The **Efficient Track Anything Model(EfficientTAM)** takes a vanilla lightweight
 
 2. **Clone the repository**:
    ```bash
-   git clone https://github.com/IIIIQIIII/real-time-eta.git
-   cd real-time-eta
+   git clone git@github.com:IIIIQIIII/etam_kalman.git etam
+   cd etam
    ```
 
 3. **Install the package in development mode**:
@@ -25,114 +21,116 @@ The **Efficient Track Anything Model(EfficientTAM)** takes a vanilla lightweight
    pip install -e .
    ```
 
-## News
-[Jan.5 2025] We add the support for running Efficient Track Anything on Macs with MPS backend. Check the example [app.py](https://github.com/yformer/EfficientTAM/blob/main/app.py).
+## UCL-follow-anything Setup
 
-[Jan.3 2025] We update the codebase of Efficient Track Anything, adpated from the latest [SAM2](https://github.com/facebookresearch/sam2) codebase with improved inference efficiency. Check the latest [SAM2](https://github.com/facebookresearch/sam2) update on Dec. 11 2024 for details. Thanks to SAM 2 team!
+### Installation Steps
 
-![Efficient Track Anything Speed Update](figs/examples/speed_vs_latency_update.png)
+1. **Prepare your environment**:
+   ```bash
+   conda deactivate  # Ensure no conda environment is active
+   cd ~  # Return to home directory
+   ```
 
-[Dec.22 2024] We release [`🤗Efficient Track Anything Checkpoints`](https://huggingface.co/yunyangx/efficient-track-anything/tree/main).
+2. **Create workspace and clone repository**:
+   ```bash
+   mkdir go2_ws && cd go2_ws
+   git clone https://github.com/UCL-follow-anything/follow-anything.git src
+   ```
+   
+   This will create the following structure:
+   ```
+   go2_ws/src
+   ```
 
-[Dec.4 2024] [`🤗Efficient Track Anything for segment everything`](https://5239f8e221db7ee8a0.gradio.live/). Thanks to @SkalskiP!
+3. **Set up ROS environment and build Livox driver**:
+   ```bash
+   source /opt/ros/humble/setup.sh
+   cd src/livox_ros_driver2 && ./build.sh humble
+   ```
 
-[Dec.2 2024] We provide the preliminary version of Efficient Track Anything for demonstration.
+4. **Build the workspace**:
+   ```bash
+   cd ~/go2_ws && colcon build
+   ```
 
-## Online Demo & Examples
-Online demo and examples can be found in the [project page](https://yformer.github.io/efficient-track-anything/).
+5. **Source the setup file**:
+   ```bash
+   source install/setup.bash
+   ```
 
-## EfficientTAM Video Segmentation Examples
-  |   |   |
-:-------------------------:|:-------------------------:
-SAM 2 | ![SAM2](figs/examples/sam2_video_segmentation.png)
-EfficientTAM |  ![EfficientTAM](figs/examples/efficienttam_video_segmentation.png)
+6. **Test your installation**:
+   ```bash
+   ros2 launch go2_config gazebo_mid360.launch.py rviz:=true
+   ```
+   This will verify that the program is running normally.
 
-## EfficientTAM Image Segmentation Examples
-Input Image, SAM, EficientSAM, SAM 2, EfficientTAM
-  |   |   |
-:-------------------------:|:-------------------------:
-Point-prompt | ![point-prompt](figs/examples/demo_img_point.png)
-Box-prompt |  ![box-prompt](figs/examples/demo_img_box.png)
-Segment everything |![segment everything](figs/examples/demo_img_everything.png)
+## Depth Alignment Package Setup
 
-## Model
-EfficientTAM checkpoints are available at the [Hugging Face Space](https://huggingface.co/yunyangx/efficient-track-anything/tree/main).
+### Installation Steps
 
-## Getting Started
+1. **Install dependencies**:
+   ```bash
+   sudo apt update
+   sudo apt install ros-humble-depth-image-proc ros-humble-cv-bridge ros-humble-image-transport ros-humble-image-transport-plugins
+   ```
 
-### Installation
+2. **Clone the repository**:
+   ```bash
+   cd ~/go2_ws/src
+   git clone https://github.com/IIIIQIIII/depth_align_pkg.git
+   ```
 
-```bash
-git clone https://github.com/yformer/EfficientTAM.git
-cd EfficientTAM
-conda create -n efficient_track_anything python=3.12
-conda activate efficient_track_anything
-pip install -e .
-```
-### Download Checkpoints
+3. **Build the package**:
+   ```bash
+   cd ~/go2_ws && colcon build --packages-select depth_align_pkg
+   ```
 
-```bash
-cd checkpoints
-./download_checkpoints.sh
-```
+4. **Source the setup file**:
+   ```bash
+   source install/setup.bash
+   ```
 
-We can benchmark FPS of efficient track anything models on GPUs and model size.
+## Tracking Package Setup
 
-### FPS Benchmarking and Model Size
+### Installation Steps
 
-```bash
-cd ..
-python efficient_track_anything/benchmark.py
-```
+1. **Install required dependencies**:
+   ```bash
+   sudo apt install -y ros-humble-rclpy ros-humble-std-msgs ros-humble-sensor-msgs ros-humble-geometry-msgs ros-humble-nav-msgs
+   sudo apt install -y ros-humble-cv-bridge
+   sudo apt install -y ros-humble-tf2-ros ros-humble-tf-transformations
+   ```
 
-### Launching Gradio Demo Locally
-For efficient track anything video, run
-```
-python app.py
-```
-For efficient track anything image, run
-```
-python app_image.py
-```
+2. **Clone the tracking repository**:
+   ```bash
+   git clone git@github.com:IIIIQIIII/tracking.git tracking
+   ```
 
+3. **Build the tracking package**:
+   ```bash
+   cd ~/go2_ws && python -m colcon build --packages-select tracking
+   ```
 
-### Building Efficient Track Anything
-You can build efficient track anything model with a config and initial the model with a checkpoint,
-```python
-import torch
+4. **Source the setup file**:
+   ```bash
+   source install/setup.bash
+   ```
 
-from efficient_track_anything.build_efficienttam import (
-    build_efficienttam_video_predictor,
-)
+### Running the Tracking System
 
-checkpoint = "./checkpoints/efficienttam_s.pt"
-model_cfg = "configs/efficienttam/efficienttam_s.yaml"
+To run the complete tracking system, open three separate terminals and run each of the following commands:
 
-predictor = build_efficienttam_video_predictor(model_cfg, checkpoint)
-```
+1. **Terminal 1: Launch Gazebo and depth alignment**:
+   ```bash
+   ros2 launch tracking gazebo_depth_align.launch.py rviz:=false
+   ```
 
-### Efficient Track Anything Notebook Example
-The notebook is shared [here](https://github.com/yformer/EfficientTAM/blob/main/notebooks)
+2. **Terminal 2: Run interactive segmentation**:
+   ```bash
+   ros2 run tracking interactive_segmentation
+   ```
 
-## License
-Efficient track anything checkpoints and codebase are licensed under [Apache 2.0](./LICENSE).
-
-## Acknowledgement
-
-+ [SAM2](https://github.com/facebookresearch/sam2)
-+ [SAM2-Video-Predictor](https://huggingface.co/spaces/fffiloni/SAM2-Video-Predictor)
-+ [florence-sam](https://huggingface.co/spaces/SkalskiP/florence-sam)
-+ [SAM](https://github.com/facebookresearch/segment-anything)
-+ [EfficientSAM](https://github.com/yformer/EfficientSAM)
-
-If you're using Efficient Track Anything in your research or applications, please cite using this BibTeX:
-```bibtex
-
-
-@article{xiong2024efficienttam,
-  title={Efficient Track Anything},
-  author={Yunyang Xiong, Chong Zhou, Xiaoyu Xiang, Lemeng Wu, Chenchen Zhu, Zechun Liu, Saksham Suri, Balakrishnan Varadarajan, Ramya Akula, Forrest Iandola, Raghuraman Krishnamoorthi, Bilge Soran, Vikas Chandra},
-  journal={preprint arXiv:2411.18933},
-  year={2024}
-}
-```
+3. **Terminal 3: Run histogram-based Kalman tracking**:
+   ```bash
+   ros2 run tracking hist_kalman_tracking
+   ```
